@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生日祝福</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+        }
+
+        .container {
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        .card {
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            user-select: none;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-word;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .card:hover::before {
+            animation: shine 1.5s;
+        }
+
+        @keyframes shine {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .card.removing {
+            animation: removeCard 0.5s forwards;
+        }
+
+        @keyframes removeCard {
+            to {
+                opacity: 0;
+                transform: scale(0.5) rotate(30deg);
+            }
+        }
+
+        /* 卡片放大效果 */
+        .card-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            padding: 50px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            transform: scale(0.8);
+            transition: transform 0.3s;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            border: 5px solid rgba(255,255,255,0.3);
+            word-break: break-word;
+        }
+
+        .card-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .close-modal:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+
+        /* 控制面板 */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            color: #333;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .control-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .music-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+            color: white;
+        }
+
+        /* 音乐播放器 */
+        .music-player {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .player-btn {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #333;
+            transition: all 0.3s;
+        }
+
+        .player-btn:hover {
+            background: rgba(0,0,0,0.1);
+            transform: scale(1.1);
+        }
+
+        .volume-slider {
+            width: 100px;
+        }
+
+        /* 计数器 */
+        .counter {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                width: 90%;
+            }
+            
+            .control-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .music-player {
+                top: 80px;
+                right: 10px;
+                left: 10px;
+                justify-content: center;
+            }
+            
+            .counter {
+                top: 80px;
+                left: 10px;
+                right: 10px;
+                text-align: center;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* 音乐图标动画 */
+        .music-icon {
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay" id="backgroundOverlay"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="floating" id="pageTitle">🎂 生日快乐！</h1>
+            <p>点击卡片查看祝福，再次点击关闭</p>
+        </div>
+
+        <div class="cards-container" id="cardsContainer">
+            <!-- 卡片将通过JS生成 -->
+        </div>
+    </div>
+
+    <!-- 卡片放大模态框 -->
+    <div class="card-modal" id="cardModal">
+        <button class="close-modal" onclick="closeModal()">×</button>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="controls">
+        <button class="control-btn music-btn" onclick="toggleMusic()">
+            <span class="music-icon">🎵</span> 音乐控制
+        </button>
+        <button class="control-btn restart-btn" onclick="restartCards()">
+            <span>🔄</span> 重新开始
+        </button>
+    </div>
+
+    <!-- 音乐播放器 -->
+    <div class="music-player" id="musicPlayer">
+        <button class="player-btn" onclick="togglePlay()" id="playBtn">▶️</button>
+        <button class="player-btn" onclick="stopMusic()">⏹️</button>
+        <input type="range" min="0" max="1" step="0.1" value="0.5" 
+               class="volume-slider" oninput="changeVolume(this.value)">
+    </div>
+
+    <!-- 计数器 -->
+    <div class="counter">
+        剩余卡片: <span id="remainingCards">0</span>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="bgm" loop></audio>
+
+    <script>
+        // 从URL获取页面ID
+        function getPageIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('id');
+        }
+
+        // 加载页面数据
+        function loadPageData(pageId) {
+            try {
+                const data = JSON.parse(localStorage.getItem(pageId));
+                if (!data) {
+                    showError('找不到生日祝福页面');
+                    return null;
+                }
+                
+                // 加载背景图片
+                const bgImage = localStorage.getItem(pageId + '_bg');
+                if (bgImage) {
+                    document.getElementById('backgroundOverlay').style.backgroundImage = `url(${bgImage})`;
+                }
+                
+                return data;
+            } catch (e) {
+                console.error('加载数据失败:', e);
+                showError('加载数据失败');
+                return null;
+            }
+        }
+
+        // 显示错误
+        function showError(message) {
+            document.body.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #f0f0f0;">
+                    <div style="text-align: center; padding: 40px; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+                        <h1 style="color: #ff6b6b; margin-bottom: 20px;">😢 出错了</h1>
+                        <p style="margin-bottom: 20px; color: #666;">${message}</p>
+                        <button onclick="window.location.href = 'index.html'" 
+                                style="background: #4ECDC4; color: white; border: none; padding: 12px 30px; border-radius: 25px; cursor: pointer; font-size: 16px;">
+                            返回生成器
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 全局变量
+        let blessings = [];
+        let cardColor = '#FF6B6B';
+        let isPlaying = false;
+        const audio = document.getElementById('bgm');
+
+        // 初始化
+        function init() {
+            const pageId = getPageIdFromUrl();
+            if (!pageId) {
+                showError('页面参数错误');
+                return;
+            }
+
+            const pageData = loadPageData(pageId);
+            if (!pageData) return;
+
+            // 设置页面数据
+            document.getElementById('pageTitle').textContent = pageData.title;
+            blessings = pageData.blessings.split('\n').filter(b => b.trim().length > 0);
+            cardColor = pageData.color;
+            
+            // 应用卡片颜色
+            document.querySelectorAll('.card').forEach(card => {
+                card.style.background = cardColor;
+            });
+            document.querySelector('.modal-content').style.background = cardColor;
+            document.querySelector('.restart-btn').style.background = `linear-gradient(135deg, ${cardColor} 0%, ${adjustColor(cardColor, 20)} 100%)`;
+
+            // 设置音乐
+            if (pageData.musicData) {
+                audio.src = pageData.musicData;
+                audio.load();
+                
+                // 尝试自动播放
+                setTimeout(() => {
+                    audio.play().then(() => {
+                        isPlaying = true;
+                        updatePlayButton();
+                    }).catch(e => {
+                        console.log('自动播放被阻止，需要用户交互');
+                    });
+                }, 1000);
+            }
+
+            createCards();
+            updateRemainingCards();
+        }
+
+        // 调整颜色亮度
+        function adjustColor(color, amount) {
+            let usePound = false;
+            if (color[0] === "#") {
+                color = color.slice(1);
+                usePound = true;
+            }
+            const num = parseInt(color, 16);
+            let r = (num >> 16) + amount;
+            let b = ((num >> 8) & 0x00FF) + amount;
+            let g = (num & 0x0000FF) + amount;
+            
+            r = Math.min(Math.max(0, r), 255);
+            g = Math.min(Math.max(0, g), 255);
+            b = Math.min(Math.max(0, b), 255);
+            
+            return (usePound ? "#" : "") + (g | (b << 8) | (r << 16)).toString(16);
+        }
+
+        // 创建卡片
+        function createCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+            
+            blessings.forEach((blessing, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.style.background = cardColor;
+                card.textContent = blessing;
+                card.onclick = () => openModal(blessing, card);
+                container.appendChild(card);
+            });
+        }
+
+        // 打开模态框
+        function openModal(text, cardElement) {
+            const modal = document.getElementById('cardModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.textContent = text;
+            modalContent.style.background = cardColor;
+            modal.classList.add('active');
+            
+            // 标记卡片为已点击
+            cardElement.classList.add('removing');
+            setTimeout(() => {
+                if (cardElement.parentNode) {
+                    cardElement.parentNode.removeChild(cardElement);
+                    updateRemainingCards();
+                }
+            }, 500);
+        }
+
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('cardModal').classList.remove('active');
+        }
+
+        // 更新剩余卡片数
+        function updateRemainingCards() {
+            const remaining = document.querySelectorAll('.card:not(.removing)').length;
+            document.getElementById('remainingCards').textContent = remaining;
+            
+            // 如果没有卡片了，显示完成消息
+            if (remaining === 0) {
+                setTimeout(() => {
+                    const modalContent = document.getElementById('modalContent');
+                    modalContent.textContent = '🎉 所有祝福已完成！';
+                    modalContent.style.background = '#4ECDC4';
+                    document.getElementById('cardModal').classList.add('active');
+                }, 500);
+            }
+        }
+
+        // 重新开始
+        function restartCards() {
+            if (confirm('确定要重新开始吗？所有卡片将重置。')) {
+                createCards();
+                updateRemainingCards();
+            }
+        }
+
+        // 音乐控制
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+            } else {
+                audio.play().catch(e => {
+                    console.log('播放失败:', e);
+                });
+            }
+            isPlaying = !isPlaying;
+            updatePlayButton();
+        }
+
+        function stopMusic() {
+            audio.pause();
+            audio.currentTime = 0;
+            isPlaying = false;
+            updatePlayButton();
+        }
+
+        function changeVolume(volume) {
+            audio.volume = volume;
+        }
+
+        function updatePlayButton() {
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸️' : '▶️';
+        }
+
+        function toggleMusic() {
+            const player = document.getElementById('musicPlayer');
+            player.style.display = player.style.display === 'none' ? 'flex' : 'none';
+        }
+
+        // 初始化
+        window.onload = init;
+        
+        // 点击模态框背景关闭
+        document.getElementById('cardModal').onclick = function(e) {
+            if (e.target === this) closeModal();
+        };
+        
+        // 键盘控制
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+            if (e.key === ' ') togglePlay();
+        });
+    </script>
+</body>
+</html>

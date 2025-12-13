@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎂 生日祝福网站生成器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFD166;
+            --dark: #2D3047;
+            --light: #F7FFF7;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 生成器样式 */
+        .generator-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        .panel-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .panel-header h1 {
+            color: var(--primary);
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .panel-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 1.1em;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.2);
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .color-picker {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .color-option {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 3px solid transparent;
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: var(--dark);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: var(--secondary);
+            background: #f0f9f8;
+        }
+
+        .upload-area i {
+            font-size: 48px;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+
+        .upload-area p {
+            margin: 10px 0;
+            color: #666;
+        }
+
+        .upload-area small {
+            color: #999;
+        }
+
+        #fileInfo {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        #previewImage {
+            max-width: 100%;
+            max-height: 200px;
+            margin-top: 15px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 18px 40px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), #FF8E8E);
+            color: white;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 2px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #f0f0f0;
+        }
+
+        /* 预览面板 */
+        .preview-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+            min-height: 600px;
+        }
+
+        .preview-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .preview-header h2 {
+            color: var(--dark);
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .preview-container {
+            height: 500px;
+            border: 2px dashed #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            background: #f8f9fa;
+        }
+
+        #previewContent {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .preview-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #999;
+        }
+
+        .preview-placeholder i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            color: #ddd;
+        }
+
+        /* 链接生成区域 */
+        .link-generator {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            color: white;
+            display: none;
+        }
+
+        .link-generator h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .link-display {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #generatedLink {
+            flex: 1;
+            padding: 15px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            border: none;
+            font-family: monospace;
+            color: #333;
+            font-size: 16px;
+        }
+
+        .copy-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-2px);
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .share-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 8px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+
+        .share-btn:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        /* 提示信息 */
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* 步骤指示器 */
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .steps::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: #e0e0e0;
+            z-index: 1;
+        }
+
+        .step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            flex: 1;
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: #e0e0e0;
+            color: #999;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-weight: bold;
+            font-size: 1.2em;
+            transition: all 0.3s;
+        }
+
+        .step.active .step-number {
+            background: var(--secondary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .step.active .step-label {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        /* 移动端适配 */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .generator-panel,
+            .preview-panel {
+                padding: 20px;
+            }
+            
+            .panel-header h1 {
+                font-size: 2em;
+            }
+            
+            .link-display {
+                flex-direction: column;
+            }
+            
+            .share-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 生成器面板 -->
+        <div class="generator-panel">
+            <div class="panel-header">
+                <h1><i class="fas fa-birthday-cake"></i> 生日祝福生成器</h1>
+                <p>创建专属的生日祝福页面，分享给朋友！</p>
+            </div>
+
+            <div class="steps">
+                <div class="step active">
+                    <div class="step-number">1</div>
+                    <div class="step-label">基本信息</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-label">个性化设置</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-label">生成分享</div>
+                </div>
+            </div>
+
+            <form id="generatorForm">
+                <div class="form-group">
+                    <label for="blessings"><i class="fas fa-comment-alt"></i> 祝福词条（每行一条）</label>
+                    <textarea id="blessings" class="form-control" placeholder="输入祝福语，每行一条...
+例如：
+生日快乐！🎂
+天天开心！😊
+心想事成！✨
+万事如意！🌟">生日快乐！🎂
+天天开心！😊
+心想事成！✨
+万事如意！🌟
+好运连连！🍀
+健康快乐！💪
+前程似锦！🚀
+笑口常开！😄</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-palette"></i> 卡片颜色</label>
+                    <div class="color-picker" id="colorPicker">
+                        <!-- 颜色选项将通过JS生成 -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardColor"><i class="fas fa-tint"></i> 或输入自定义颜色</label>
+                    <input type="color" id="cardColor" class="form-control" value="#FF6B6B" style="height: 60px;">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-music"></i> 背景音乐</label>
+                    <div class="upload-area" onclick="document.getElementById('musicFile').click()">
+                        <i class="fas fa-file-audio"></i>
+                        <p>点击上传背景音乐文件</p>
+                        <small>支持 MP3、WAV、OGG 格式</small>
+                        <div id="fileInfo">未选择文件</div>
+                    </div>
+                    <input type="file" id="musicFile" accept="audio/*" style="display: none;">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-image"></i> 背景图片（可选）</label>
+                    <div class="upload-area" onclick="document.getElementById('bgImage').click()">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>点击上传背景图片</p>
+                        <small>支持 JPG、PNG 格式</small>
+                        <img id="previewImage" alt="预览">
+                    </div>
+                    <input type="file" id="bgImage" accept="image/*" style="display: none;">
+                </div>
+
+                <div class="form-group">
+                    <label for="title"><i class="fas fa-heading"></i> 页面标题</label>
+                    <input type="text" id="title" class="form-control" value="🎂 生日快乐！" placeholder="输入页面标题">
+                </div>
+
+                <button type="button" class="btn btn-primary" onclick="generatePage()">
+                    <i class="fas fa-magic"></i> 生成祝福页面
+                </button>
+            </form>
+
+            <div class="alert alert-success" id="successAlert">
+                <i class="fas fa-check-circle"></i> 页面生成成功！滚动查看生成的链接。
+            </div>
+
+            <div class="alert alert-error" id="errorAlert">
+                <i class="fas fa-exclamation-circle"></i> <span id="errorMessage">请填写所有必填信息</span>
+            </div>
+        </div>
+
+        <!-- 预览面板 -->
+        <div class="preview-panel">
+            <div class="preview-header">
+                <h2><i class="fas fa-eye"></i> 效果预览</h2>
+                <p>实时预览你的生日祝福页面</p>
+            </div>
+
+            <div class="preview-container">
+                <iframe id="previewContent"></iframe>
+                <div class="preview-placeholder" id="previewPlaceholder">
+                    <i class="fas fa-birthday-cake"></i>
+                    <p>填写左侧信息后，预览将在此显示</p>
+                </div>
+            </div>
+
+            <!-- 链接生成区域 -->
+            <div class="link-generator" id="linkGenerator">
+                <h3><i class="fas fa-link"></i> 分享链接已生成</h3>
+                <p>复制下面的链接分享给朋友，他们在手机或电脑上打开即可查看祝福！</p>
+                
+                <div class="link-display">
+                    <input type="text" id="generatedLink" readonly>
+                    <button class="copy-btn" onclick="copyLink()">
+                        <i class="fas fa-copy"></i> 复制链接
+                    </button>
+                </div>
+
+                <div class="share-buttons">
+                    <button class="share-btn" onclick="shareTo('wechat')">
+                        <i class="fab fa-weixin"></i> 微信分享
+                    </button>
+                    <button class="share-btn" onclick="shareTo('qq')">
+                        <i class="fab fa-qq"></i> QQ分享
+                    </button>
+                    <button class="share-btn" onclick="shareTo('weibo')">
+                        <i class="fab fa-weibo"></i> 微博分享
+                    </button>
+                    <button class="share-btn" onclick="testLink()">
+                        <i class="fas fa-external-link-alt"></i> 测试打开
+                    </button>
+                </div>
+
+                <div style="margin-top: 20px; font-size: 0.9em;">
+                    <p><i class="fas fa-info-circle"></i> 提示：</p>
+                    <ul style="margin-left: 20px; opacity: 0.9;">
+                        <li>链接永久有效（除非清除浏览器数据）</li>
+                        <li>支持手机和电脑浏览器</li>
+                        <li>打开后自动播放音乐</li>
+                        <li>点击卡片放大显示，再次点击关闭</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 预定义颜色选项
+        const colorOptions = [
+            '#FF6B6B', '#4ECDC4', '#FFD166', '#06D6A0', '#118AB2',
+            '#EF476F', '#7209B7', '#3A86FF', '#FB5607', '#8338EC',
+            '#FF006E', '#FFBE0B', '#3A86FF', '#38B000', '#FF9E00'
+        ];
+
+        // 初始化颜色选择器
+        function initColorPicker() {
+            const colorPicker = document.getElementById('colorPicker');
+            colorPicker.innerHTML = '';
+            
+            colorOptions.forEach(color => {
+                const div = document.createElement('div');
+                div.className = 'color-option';
+                div.style.backgroundColor = color;
+                div.title = color;
+                div.onclick = function() {
+                    // 移除其他选中状态
+                    document.querySelectorAll('.color-option').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    // 设置当前选中
+                    this.classList.add('selected');
+                    // 同步到颜色输入框
+                    document.getElementById('cardColor').value = color;
+                    updatePreview();
+                };
+                
+                // 默认选中第一个
+                if (color === colorOptions[0]) {
+                    div.classList.add('selected');
+                }
+                
+                colorPicker.appendChild(div);
+            });
+        }
+
+        // 文件上传处理
+        document.getElementById('musicFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                document.getElementById('fileInfo').innerHTML = 
+                    `<i class="fas fa-check"></i> 已选择: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+                updatePreview();
+            }
+        });
+
+        document.getElementById('bgImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('previewImage');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    updatePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 颜色输入框变化
+        document.getElementById('cardColor').addEventListener('input', updatePreview);
+
+        // 表单输入变化
+        document.getElementById('blessings').addEventListener('input', updatePreview);
+        document.getElementById('title').addEventListener('input', updatePreview);
+
+        // 更新预览
+        function updatePreview() {
+            const blessings = document.getElementById('blessings').value;
+            const color = document.getElementById('cardColor').value;
+            const title = document.getElementById('title').value;
+            
+            // 如果有足够的信息，生成预览
+            if (blessings.trim().length > 0) {
+                generatePreview(blessings, color, title);
+            }
+        }
+
+        // 生成预览页面
+        function generatePreview(blessings, color, title) {
+            const previewContent = generatePlayerHTML(blessings, color, title, true);
+            const iframe = document.getElementById('previewContent');
+            const placeholder = document.getElementById('previewPlaceholder');
+            
+            iframe.srcdoc = previewContent;
+            iframe.style.display = 'block';
+            placeholder.style.display = 'none';
+        }
+
+        // 生成完整的播放器页面HTML
+        function generatePlayerHTML(blessings, color, title, isPreview = false) {
+            const blessingsArray = blessings.split('\n').filter(b => b.trim().length > 0);
+            
+            return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${title}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: ${isPreview ? '#f0f0f0' : '#2D3047'};
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .background-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: ${isPreview ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : 'var(--bg-image)'};
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+        }
+
+        .container {
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                gap: 15px;
+            }
+        }
+
+        .card {
+            background: ${color};
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            color: white;
+            font-size: 1.3em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            user-select: none;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-word;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+            transform: translateX(-100%);
+        }
+
+        .card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .card:hover::before {
+            animation: shine 1.5s;
+        }
+
+        @keyframes shine {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .card.removing {
+            animation: removeCard 0.5s forwards;
+        }
+
+        @keyframes removeCard {
+            to {
+                opacity: 0;
+                transform: scale(0.5) rotate(30deg);
+            }
+        }
+
+        /* 卡片放大效果 */
+        .card-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+        }
+
+        .card-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: ${color};
+            padding: 50px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            color: white;
+            font-size: 2.5em;
+            font-weight: bold;
+            transform: scale(0.8);
+            transition: transform 0.3s;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            border: 5px solid rgba(255,255,255,0.3);
+            word-break: break-word;
+        }
+
+        .card-modal.active .modal-content {
+            transform: scale(1);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .close-modal:hover {
+            background: rgba(255,255,255,0.3);
+            transform: rotate(90deg);
+        }
+
+        /* 控制面板 */
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            background: rgba(255,255,255,0.9);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            color: #333;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .control-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .music-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%);
+            color: white;
+        }
+
+        /* 音乐播放器 */
+        .music-player {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .player-btn {
+            background: none;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.2em;
+            color: #333;
+            transition: all 0.3s;
+        }
+
+        .player-btn:hover {
+            background: rgba(0,0,0,0.1);
+            transform: scale(1.1);
+        }
+
+        .volume-slider {
+            width: 100px;
+        }
+
+        /* 计数器 */
+        .counter {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                width: 90%;
+            }
+            
+            .control-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .music-player {
+                top: 80px;
+                right: 10px;
+                left: 10px;
+                justify-content: center;
+            }
+            
+            .counter {
+                top: 80px;
+                left: 10px;
+                right: 10px;
+                text-align: center;
+            }
+        }
+
+        /* 动画效果 */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* 音乐图标动画 */
+        .music-icon {
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-overlay" id="backgroundOverlay"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="floating">${title}</h1>
+            <p>点击卡片查看祝福，再次点击关闭</p>
+        </div>
+
+        <div class="cards-container" id="cardsContainer">
+            <!-- 卡片将通过JS生成 -->
+        </div>
+    </div>
+
+    <!-- 卡片放大模态框 -->
+    <div class="card-modal" id="cardModal">
+        <button class="close-modal" onclick="closeModal()">×</button>
+        <div class="modal-content" id="modalContent"></div>
+    </div>
+
+    <!-- 控制面板 -->
+    <div class="controls">
+        <button class="control-btn music-btn" onclick="toggleMusic()">
+            <span class="music-icon">🎵</span> 音乐控制
+        </button>
+        <button class="control-btn restart-btn" onclick="restartCards()">
+            <span>🔄</span> 重新开始
+        </button>
+    </div>
+
+    <!-- 音乐播放器 -->
+    <div class="music-player" id="musicPlayer">
+        <button class="player-btn" onclick="togglePlay()" id="playBtn">▶️</button>
+        <button class="player-btn" onclick="stopMusic()">⏹️</button>
+        <input type="range" min="0" max="1" step="0.1" value="0.5" 
+               class="volume-slider" oninput="changeVolume(this.value)">
+    </div>
+
+    <!-- 计数器 -->
+    <div class="counter">
+        剩余卡片: <span id="remainingCards">${blessingsArray.length}</span>
+    </div>
+
+    <!-- 音频元素 -->
+    <audio id="bgm" loop>
+        <!-- 音乐将通过JS设置 -->
+    </audio>
+
+    <script>
+        // 祝福语数组
+        const blessings = ${JSON.stringify(blessingsArray)};
+        const cardColor = "${color}";
+        
+        // 音频数据
+        let audioData = null;
+        let audioUrl = null;
+        
+        // 初始化
+        function init() {
+            createCards();
+            ${isPreview ? '' : 'setupMusic();'}
+            updateRemainingCards();
+        }
+        
+        // 创建卡片
+        function createCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+            
+            blessings.forEach((blessing, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.textContent = blessing;
+                card.onclick = () => openModal(blessing, card);
+                container.appendChild(card);
+            });
+        }
+        
+        // 打开模态框
+        function openModal(text, cardElement) {
+            const modal = document.getElementById('cardModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.textContent = text;
+            modal.classList.add('active');
+            
+            // 标记卡片为已点击
+            cardElement.classList.add('removing');
+            setTimeout(() => {
+                if (cardElement.parentNode) {
+                    cardElement.parentNode.removeChild(cardElement);
+                    updateRemainingCards();
+                }
+            }, 500);
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('cardModal').classList.remove('active');
+        }
+        
+        // 更新剩余卡片数
+        function updateRemainingCards() {
+            const remaining = document.querySelectorAll('.card:not(.removing)').length;
+            document.getElementById('remainingCards').textContent = remaining;
+            
+            // 如果没有卡片了，显示完成消息
+            if (remaining === 0) {
+                setTimeout(() => {
+                    alert('🎉 所有祝福卡片已完成！点击"重新开始"再来一次！');
+                }, 500);
+            }
+        }
+        
+        // 重新开始
+        function restartCards() {
+            if (confirm('确定要重新开始吗？所有卡片将重置。')) {
+                createCards();
+                updateRemainingCards();
+            }
+        }
+        
+        // 音乐控制
+        let isPlaying = false;
+        const audio = document.getElementById('bgm');
+        
+        function setupMusic() {
+            ${isPreview ? '// 预览模式下不设置音乐' : `
+            try {
+                // 尝试从URL获取音乐数据
+                const musicData = localStorage.getItem('birthdayMusicData');
+                if (musicData) {
+                    audio.src = musicData;
+                    audio.load();
+                    audio.play().then(() => {
+                        isPlaying = true;
+                        updatePlayButton();
+                    }).catch(e => {
+                        console.log('自动播放被阻止，需要用户交互');
+                    });
+                }
+            } catch (e) {
+                console.log('音乐设置失败:', e);
+            }
+            `}
+        }
+        
+        function togglePlay() {
+            if (isPlaying) {
+                audio.pause();
+            } else {
+                audio.play().catch(e => {
+                    console.log('播放失败:', e);
+                });
+            }
+            isPlaying = !isPlaying;
+            updatePlayButton();
+        }
+        
+        function stopMusic() {
+            audio.pause();
+            audio.currentTime = 0;
+            isPlaying = false;
+            updatePlayButton();
+        }
+        
+        function changeVolume(volume) {
+            audio.volume = volume;
+        }
+        
+        function updatePlayButton() {
+            document.getElementById('playBtn').textContent = isPlaying ? '⏸️' : '▶️';
+        }
+        
+        function toggleMusic() {
+            const player = document.getElementById('musicPlayer');
+            player.style.display = player.style.display === 'none' ? 'flex' : 'none';
+        }
+        
+        // 初始化
+        window.onload = init;
+        
+        // 点击模态框背景关闭
+        document.getElementById('cardModal').onclick = function(e) {
+            if (e.target === this) closeModal();
+        };
+        
+        // 键盘控制
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+            if (e.key === ' ') togglePlay();
+        });
+    </script>
+</body>
+</html>`;
+        }
+
+        // 生成页面
+        function generatePage() {
+            const blessings = document.getElementById('blessings').value;
+            const color = document.getElementById('cardColor').value;
+            const title = document.getElementById('title').value;
+            const musicFile = document.getElementById('musicFile').files[0];
+            const bgImage = document.getElementById('bgImage').files[0];
+            
+            // 验证输入
+            if (!blessings.trim()) {
+                showError('请至少输入一条祝福语');
+                return;
+            }
+            
+            // 获取音乐数据
+            let musicData = null;
+            if (musicFile) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    musicData = e.target.result;
+                    finalizeGeneration(blessings, color, title, musicData, bgImage);
+                };
+                reader.readAsDataURL(musicFile);
+            } else {
+                finalizeGeneration(blessings, color, title, null, bgImage);
+            }
+        }
+
+        // 完成生成
+        function finalizeGeneration(blessings, color, title, musicData, bgImage) {
+            // 生成唯一ID
+            const pageId = 'birthday_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // 存储到localStorage
+            const pageData = {
+                blessings: blessings,
+                color: color,
+                title: title,
+                musicData: musicData,
+                bgImage: bgImage ? true : false,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem(pageId, JSON.stringify(pageData));
+            
+            // 如果是图片，单独存储
+            if (bgImage) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    localStorage.setItem(pageId + '_bg', e.target.result);
+                    completeGeneration(pageId);
+                };
+                reader.readAsDataURL(bgImage);
+            } else {
+                completeGeneration(pageId);
+            }
+        }
+
+        // 完成生成过程
+        function completeGeneration(pageId) {
+            // 生成链接
+            const link = window.location.origin + window.location.pathname.replace('index.html', '') + 'player.html?id=' + pageId;
+            
+            // 显示链接区域
+            document.getElementById('generatedLink').value = link;
+            document.getElementById('linkGenerator').style.display = 'block';
+            
+            // 更新预览为实际生成版本
+            const blessings = document.getElementById('blessings').value;
+            const color = document.getElementById('cardColor').value;
+            const title = document.getElementById('title').value;
+            
+            generatePreview(blessings, color, title);
+            
+            // 显示成功消息
+            showSuccess();
+            
+            // 更新步骤指示器
+            updateSteps(3);
+            
+            // 滚动到链接区域
+            setTimeout(() => {
+                document.getElementById('linkGenerator').scrollIntoView({ behavior: 'smooth' });
+            }, 500);
+        }
+
+        // 更新步骤指示器
+        function updateSteps(stepNumber) {
+            document.querySelectorAll('.step').forEach((step, index) => {
+                if (index + 1 <= stepNumber) {
+                    step.classList.add('active');
+                } else {
+                    step.classList.remove('active');
+                }
+            });
+        }
+
+        // 显示成功消息
+        function showSuccess() {
+            document.getElementById('successAlert').style.display = 'block';
+            document.getElementById('errorAlert').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('successAlert').style.display = 'none';
+            }, 5000);
+        }
+
+        // 显示错误消息
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('errorAlert').style.display = 'block';
+            document.getElementById('successAlert').style.display = 'none';
+        }
+
+        // 复制链接
+        function copyLink() {
+            const linkInput = document.getElementById('generatedLink');
+            linkInput.select();
+            linkInput.setSelectionRange(0, 99999);
+            
+            try {
+                navigator.clipboard.writeText(linkInput.value).then(() => {
+                    alert('链接已复制到剪贴板！');
+                });
+            } catch (err) {
+                document.execCommand('copy');
+                alert('链接已复制到剪贴板！');
+            }
+        }
+
+        // 分享到不同平台
+        function shareTo(platform) {
+            const link = document.getElementById('generatedLink').value;
+            const title = document.getElementById('title').value;
+            
+            let shareUrl = '';
+            
+            switch(platform) {
+                case 'wechat':
+                    alert('请复制链接后到微信中粘贴分享：\n\n' + link);
+                    break;
+                case 'qq':
+                    shareUrl = `https://connect.qq.com/widget/shareqq/index.html?url=${encodeURIComponent(link)}&title=${encodeURIComponent(title)}`;
+                    window.open(shareUrl, '_blank');
+                    break;
+                case 'weibo':
+                    shareUrl = `http://service.weibo.com/share/share.php?url=${encodeURIComponent(link)}&title=${encodeURIComponent(title)}`;
+                    window.open(shareUrl, '_blank');
+                    break;
+            }
+        }
+
+        // 测试链接
+        function testLink() {
+            window.open(document.getElementById('generatedLink').value, '_blank');
+        }
+
+        // 初始化
+        window.onload = function() {
+            initColorPicker();
+            updatePreview();
+            updateSteps(1);
+            
+            // 监听表单变化，更新步骤
+            document.getElementById('generatorForm').addEventListener('input', function() {
+                const blessings = document.getElementById('blessings').value;
+                if (blessings.trim().length > 0) {
+                    updateSteps(2);
+                } else {
+                    updateSteps(1);
+                }
+            });
+        };
+    </script>
+</body>
+</html>
