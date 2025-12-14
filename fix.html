@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>生日祝福修复版</title>
+    <style>
+        body { font-family: Arial; padding: 20px; max-width: 600px; margin: auto; }
+        textarea, input, button { width: 100%; margin: 10px 0; padding: 10px; }
+        button { background: #4CAF50; color: white; border: none; cursor: pointer; }
+        .link { background: #f0f0f0; padding: 10px; margin: 10px 0; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <h1>🎂 生日祝福生成器（修复版）</h1>
+    
+    <textarea id="blessings" rows="5" placeholder="输入祝福语，每行一条...">生日快乐！🎂
+天天开心！😊
+万事如意！✨</textarea>
+    
+    <input type="color" id="color" value="#FF6B6B">
+    <input type="text" id="title" value="🎂 生日快乐！">
+    
+    <button onclick="generate()">生成祝福页面</button>
+    
+    <div id="result" style="display:none;">
+        <h3>✅ 生成成功！</h3>
+        <p>复制链接分享给朋友：</p>
+        <div class="link" id="generatedLink"></div>
+        <button onclick="copyLink()">复制链接</button>
+        <button onclick="testLink()">测试打开</button>
+    </div>
+    
+    <script>
+        function generate() {
+            const blessings = document.getElementById('blessings').value.trim();
+            const color = document.getElementById('color').value;
+            const title = document.getElementById('title').value.trim();
+            
+            if (!blessings) {
+                alert('请输入祝福语');
+                return;
+            }
+            
+            // 生成页面ID
+            const pageId = 'birthday_' + Date.now();
+            
+            // 存储数据
+            const pageData = {
+                blessings: blessings,
+                color: color,
+                title: title,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem(pageId, JSON.stringify(pageData));
+            
+            // 生成正确的链接
+            const currentUrl = window.location.href;
+            let playerUrl = '';
+            
+            if (currentUrl.includes('fix.html')) {
+                // 替换fix.html为player.html
+                playerUrl = currentUrl.replace('fix.html', 'player.html');
+            } else if (currentUrl.includes('index.html')) {
+                // 替换index.html为player.html
+                playerUrl = currentUrl.replace('index.html', 'player.html');
+            } else {
+                // 其他情况，直接使用player.html
+                playerUrl = currentUrl.split('/').slice(0, -1).join('/') + '/player.html';
+            }
+            
+            const link = playerUrl + '?id=' + pageId;
+            
+            // 显示结果
+            document.getElementById('generatedLink').textContent = link;
+            document.getElementById('result').style.display = 'block';
+        }
+        
+        function copyLink() {
+            const link = document.getElementById('generatedLink').textContent;
+            navigator.clipboard.writeText(link).then(() => {
+                alert('链接已复制！');
+            });
+        }
+        
+        function testLink() {
+            const link = document.getElementById('generatedLink').textContent;
+            window.open(link, '_blank');
+        }
+    </script>
+</body>
+</html>
